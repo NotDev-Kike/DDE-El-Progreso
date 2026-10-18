@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client'
 import { BarChart3, BookOpen, Building2, FileText, LogOut, Menu, Users, X } from 'lucide-react'
 import './styles.css'
 
+const SESSION_KEY = 'dde.session'
+const ACTIVE_KEY = 'dde.active-module'
+
 const modules = [
   { key: 'docentes', label: 'Docentes', icon: Users },
   { key: 'estructuras', label: 'Estructuras', icon: Building2 },
@@ -27,7 +30,7 @@ async function api(path, options = {}) {
   try {
     data = raw ? JSON.parse(raw) : null
   } catch {
-    throw new Error('La API devolvió una respuesta inválida. Verifique que Apache/PHP esté activo.')
+    throw new Error(`La API devolvió una respuesta inválida (${response.status}). Verifique Apache/PHP y la consola del servidor.`)
   }
   if (!data) {
     throw new Error('La API no respondió. Inicie Apache/PHP y MySQL antes de ingresar.')
@@ -41,7 +44,11 @@ function Login({ onLogin }) {
   const [error, setError] = useState('')
   const submit = async event => {
     event.preventDefault(); setError('')
-    try { onLogin((await api('?action=login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })).user) }
+    try {
+      const user = (await api('?action=login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })).user
+      localStorage.setItem(SESSION_KEY, JSON.stringify(user))
+      onLogin(user)
+    }
     catch (e) { setError(e.message) }
   }
   return <main className="login-page"><form className="login-card" onSubmit={submit}>
@@ -64,12 +71,20 @@ function TableView({ module }) {
 }
 
 function App() {
-  const [user, setUser] = useState(null); const [active, setActive] = useState('dashboard'); const [open, setOpen] = useState(false); const [stats, setStats] = useState({})
+  const [user, setUser] = useState(() => { try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null') } catch { return null } })
+  const [active, setActive] = useState(() => localStorage.getItem(ACTIVE_KEY) || 'dashboard')
+  const [open, setOpen] = useState(false); const [stats, setStats] = useState({}); const [ready, setReady] = useState(false)
+  useEffect(() => {
+    if (!user) { setReady(true); return }
+    api('?action=session').then(x => setUser(x.user)).catch(() => { localStorage.removeItem(SESSION_KEY); setUser(null) }).finally(() => setReady(true))
+  }, [])
   useEffect(() => { if (user) api('?resource=dashboard').then(x => setStats(x.data)).catch(() => {}) }, [user])
+  const navigate = key => { localStorage.setItem(ACTIVE_KEY, key); setActive(key); setOpen(false) }
+  if (!ready) return <main className="login-page"><div className="login-card"><div className="brand-mark">DDE</div><p className="muted">Comprobando sesión…</p></div></main>
   if (!user) return <Login onLogin={setUser} />
   const current = modules.find(x => x.key === active)
-  const logout = async () => { await api('?action=logout', { method: 'POST' }); setUser(null) }
-  return <div className="app-shell"><aside className={open ? 'sidebar open' : 'sidebar'}><div className="sidebar-brand"><span>DDE</span><button onClick={() => setOpen(false)}><X size={20} /></button></div><p className="sidebar-label">NAVEGACIÓN</p><button className={active === 'dashboard' ? 'nav-item active' : 'nav-item'} onClick={() => { setActive('dashboard'); setOpen(false) }}><BarChart3 size={18} /> Resumen</button>{modules.map(({ key, label, icon: Icon }) => <button className={active === key ? 'nav-item active' : 'nav-item'} key={key} onClick={() => { setActive(key); setOpen(false) }}><Icon size={18} /> {label}</button>)}</aside><div className="content"><header className="topbar"><button className="menu-button" onClick={() => setOpen(true)}><Menu /></button><div><p className="eyebrow">DIRECCIÓN DISTRITAL DE EDUCACIÓN</p><h1>El Progreso</h1></div><div className="user-area"><span>{user.nombre || user.usuario}</span><button onClick={logout} title="Cerrar sesión"><LogOut size={18} /></button></div></header><main className="main-content">{active === 'dashboard' ? <><div className="welcome"><div><p className="eyebrow">PANEL PRINCIPAL</p><h2>Buenos días, {user.nombre || user.usuario}</h2><p className="muted">Consulta y administra la información educativa desde un solo lugar.</p></div></div><div className="stat-grid">{[['docentes','Docentes'],['estructuras','Estructuras'],['nombramientos','Nombramientos'],['usuarios','Usuarios']].map(([key,label]) => <div className="stat-card" key={key}><span>{label}</span><strong>{stats[key] ?? '—'}</strong></div>)}</div><div className="quick-grid">{modules.slice(0, 5).map(m => <button key={m.key} onClick={() => setActive(m.key)}><m.icon size={22} /><span>{m.label}</span></button>)}</div></> : <TableView module={current} />}</main></div></div>
+  const logout = async () => { try { await api('?action=logout', { method: 'POST' }) } finally { localStorage.removeItem(SESSION_KEY); localStorage.setItem(ACTIVE_KEY, 'dashboard'); setUser(null); setActive('dashboard') } }
+  return <div className="app-shell"><aside className={open ? 'sidebar open' : 'sidebar'}><div className="sidebar-brand"><span>DDE</span><button onClick={() => setOpen(false)}><X size={20} /></button></div><p className="sidebar-label">NAVEGACIÓN</p><button className={active === 'dashboard' ? 'nav-item active' : 'nav-item'} onClick={() => navigate('dashboard')}><BarChart3 size={18} /> Resumen</button>{modules.map(({ key, label, icon: Icon }) => <button className={active === key ? 'nav-item active' : 'nav-item'} key={key} onClick={() => navigate(key)}><Icon size={18} /> {label}</button>)}</aside><div className="content"><header className="topbar"><button className="menu-button" onClick={() => setOpen(true)}><Menu /></button><div><p className="eyebrow">DIRECCIÓN DISTRITAL DE EDUCACIÓN</p><h1>El Progreso</h1></div><div className="user-area"><span>{user.nombre || user.usuario}</span><button onClick={logout} title="Cerrar sesión"><LogOut size={18} /></button></div></header><main className="main-content">{active === 'dashboard' ? <><div className="welcome"><div><p className="eyebrow">PANEL PRINCIPAL</p><h2>Buenos días, {user.nombre || user.usuario}</h2><p className="muted">Consulta y administra la información educativa desde un solo lugar.</p></div></div><div className="stat-grid">{[['docentes','Docentes'],['estructuras','Estructuras'],['nombramientos','Nombramientos'],['usuarios','Usuarios']].map(([key,label]) => <div className="stat-card" key={key}><span>{label}</span><strong>{stats[key] ?? '—'}</strong></div>)}</div><div className="quick-grid">{modules.slice(0, 5).map(m => <button key={m.key} onClick={() => navigate(m.key)}><m.icon size={22} /><span>{m.label}</span></button>)}</div></> : <TableView module={current} />}</main></div></div>
 }
 
 createRoot(document.getElementById('root')).render(<StrictMode><App /></StrictMode>)

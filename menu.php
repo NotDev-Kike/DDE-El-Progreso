@@ -1,216 +1,52 @@
 <?php include "includes/header.php"; ?>
-
+<section class="page-header">
+    <div>
+        <p class="eyebrow">Panel principal</p>
+        <h1>¿Qué necesitas gestionar hoy?</h1>
+        <p class="page-description">Accede rápidamente a los registros, formatos y reportes de la Dirección Distrital.</p>
+    </div>
+    <a class="button" href="<?= htmlspecialchars(BASE_URL . '/matriz/listar.php', ENT_QUOTES, 'UTF-8') ?>">Abrir matriz</a>
+</section>
+<section class="dashboard-grid" aria-label="Módulos del sistema">
+    <a class="dashboard-card dashboard-card-featured" href="matriz/listar.php"><span class="dashboard-icon">▦</span><span><strong>Matriz</strong><small>Consulta y administra la información central.</small></span><b>→</b></a>
+    <a class="dashboard-card" href="docentes/listar.php"><span class="dashboard-icon">◎</span><span><strong>Docentes</strong><small>Directorio y datos del personal.</small></span><b>→</b></a>
+    <a class="dashboard-card" href="nombramientos/listar.php"><span class="dashboard-icon">□</span><span><strong>Nombramientos</strong><small>Gestiona nombramientos y asignaciones.</small></span><b>→</b></a>
+    <a class="dashboard-card" href="estructuras/listar.php"><span class="dashboard-icon">⌂</span><span><strong>Estructuras</strong><small>Organización de centros y plazas.</small></span><b>→</b></a>
+    <a class="dashboard-card" href="usuarios/listar.php"><span class="dashboard-icon">●</span><span><strong>Usuarios</strong><small>Administra accesos del sistema.</small></span><b>→</b></a>
+</section>
+<section class="dashboard-section">
+    <div class="section-heading"><div><p class="eyebrow">Documentos</p><h2>Formatos frecuentes</h2></div></div>
+    <div class="quick-links">
+        <a href="formatos/basica_nombramiento/listar.php">Nombramiento básica <span>→</span></a>
+        <a href="formatos/basica_traslado/listar.php">Traslado docente <span>→</span></a>
+        <a href="formatos/media_nombramiento/listar.php">Nombramiento media <span>→</span></a>
+        <a href="formatos/formato_cancelaciones/listar.php">Cancelaciones <span>→</span></a>
+    </div>
+</section>
+<section class="dashboard-section">
+    <div class="section-heading"><div><p class="eyebrow">Información</p><h2>Reportes</h2></div><span class="section-note">Consulta resumida del sistema</span></div>
+    <div class="quick-links">
+        <a href="reportes/matriz.php">Reporte de matriz <span>→</span></a>
+        <a href="reportes/docentes.php">Reporte de docentes <span>→</span></a>
+        <a href="reportes/nombramientos.php">Reporte de nombramientos <span>→</span></a>
+        <a href="reportes/estructuras.php">Reporte de estructuras <span>→</span></a>
+    </div>
+</section>
 <style>
-    body {
-        background-color: #eef6f1;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        margin: 0;
-        padding: 0;
-        color: #333;
-    }
-
-    .banner {
-        width: 100%;
-        aspect-ratio: 16 / 4;
-        overflow: hidden;
-        margin-bottom: 15px;
-    }
-
-    .banner img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    h1 {
-        text-align: center;
-        color: #2c3e50;
-        margin: 15px 0 25px 0;
-        font-size: 32px;
-        font-weight: 700;
-    }
-
-    h2.section-title {
-        text-align: center !important;
-        color: #2c3e50;
-        margin: 25px 0 10px 0;
-        font-size: 24px;
-        font-weight: 600;
-        position: relative;
-    }
-
-    h2.section-title::after {
-        content: '';
-        display: block;
-        width: 60px;
-        height: 3px;
-        background-color: #28a745;
-        margin: 5px auto 0 auto;
-        border-radius: 2px;
-    }
-
-    .menu-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 4px 8px;
-        margin-bottom: 25px;
-        padding: 0 10px;
-    }
-
-    .button {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 12px 8px;
-        font-size: 14.5px;
-        color: #fff;
-        text-decoration: none;
-        border-radius: 10px;
-        box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-        width: 100%;
-        max-width: 200px;
-        text-align: center;
-        font-weight: 600;
-    }
-
-    .button .icon {
-        font-size: 28px;
-        margin-bottom: 5px;
-    }
-
-    .button.primary { background: linear-gradient(135deg, #28a745, #218838); }
-    .button.secondary { background: linear-gradient(135deg, #17a2b8, #138496); }
-    .button.report { background: linear-gradient(135deg, #ffc107, #e0a800); color: #000; }
-    .button.user { background: linear-gradient(135deg, #6f42c1, #5936a2); }
-    .button.format { background: linear-gradient(135deg, #007bff, #0056b3); }
-
-    .button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 18px rgba(0,0,0,0.15);
-    }
-
-    footer {
-        text-align: center;
-        padding: 15px;
-        background-color: #28a745;
-        font-size: 15px;
-        color: #fff;
-        margin-top: 35px;
-        border-top-left-radius: 12px;
-        border-top-right-radius: 12px;
-    }
-
-    @media (max-width: 768px) {
-        .button {
-            max-width: 170px;
-            font-size: 13.5px;
-            padding: 10px 6px;
-        }
-        .button .icon {
-            font-size: 26px;
-        }
-    }
+.dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .85rem; margin-bottom: 2.5rem; }
+.dashboard-card { display: flex; align-items: center; gap: .8rem; min-height: 118px; padding: 1rem; border: 1px solid var(--line); border-radius: 1rem; background: var(--surface); color: var(--ink); text-decoration: none; box-shadow: var(--shadow); transition: transform .2s, border-color .2s; }
+.dashboard-card:hover { transform: translateY(-3px); border-color: #8ed5cc; }
+.dashboard-card-featured { grid-column: span 2; background: linear-gradient(135deg, #0f766e, #155e75); color: #fff; border: 0; }
+.dashboard-card span:nth-child(2) { display: grid; gap: .2rem; flex: 1; }
+.dashboard-card strong { font-size: 1rem; } .dashboard-card small { color: var(--muted); line-height: 1.35; }
+.dashboard-card-featured small, .dashboard-card-featured b { color: #d9fffa; } .dashboard-card b { color: var(--brand); font-size: 1.2rem; }
+.dashboard-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: .7rem; background: var(--brand-soft); color: var(--brand-dark); font-size: 1.35rem; font-weight: 800; }
+.dashboard-card-featured .dashboard-icon { background: rgba(255,255,255,.16); color: #fff; }
+.dashboard-section { margin-top: 2.25rem; } .section-heading { display: flex; justify-content: space-between; align-items: end; margin-bottom: .75rem; }
+.section-note { color: var(--muted); font-size: .85rem; } .quick-links { display: grid; grid-template-columns: repeat(4, 1fr); gap: .75rem; }
+.quick-links a { display: flex; justify-content: space-between; gap: .5rem; padding: 1rem; border: 1px solid var(--line); border-radius: .75rem; background: #fff; color: var(--ink); text-decoration: none; font-weight: 700; }
+.quick-links a:hover { border-color: #8ed5cc; background: #fbfefd; } .quick-links span { color: var(--brand); }
+@media (max-width: 900px) { .dashboard-grid { grid-template-columns: repeat(2, 1fr); } .dashboard-card-featured { grid-column: span 2; } .quick-links { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .dashboard-grid, .quick-links { grid-template-columns: 1fr; } .dashboard-card-featured { grid-column: auto; } }
 </style>
-
-<div class="banner">
-    <img src="imgs/banner.png" alt="Banner institucional">
-</div>
-
-<h1>Dirección Distrital de Educación - El Progreso</h1>
-
-<h2 class="section-title">Sección Principal</h2>
-<div class="menu-container">
-    <a class="button primary" href="matriz/listar.php">
-        <div class="icon">📊</div>
-        Matriz
-    </a>
-</div>
-
-<h2 class="section-title">Registros</h2>
-<div class="menu-container">
-    <a class="button secondary" href="docentes/listar.php">
-        <div class="icon">👩‍🏫</div>
-        Docentes
-    </a>
-    <a class="button secondary" href="nombramientos/listar.php">
-        <div class="icon">📝</div>
-        Nombramientos
-    </a>
-    <a class="button secondary" href="estructuras/listar.php">
-        <div class="icon">🏛️</div>
-        Estructuras
-    </a>
-    <a class="button user" href="usuarios/listar.php">
-        <div class="icon">👤</div>
-        Usuarios
-    </a>
-</div>
-
-<h2 class="section-title">Reportes / Informes</h2>
-<div class="menu-container">
-    <a class="button report" href="reportes/matriz.php">
-        <div class="icon">📈</div>
-        Reportes Matriz
-    </a>
-    <a class="button report" href="reportes/docentes.php">
-        <div class="icon">📊</div>
-        Reportes Docentes
-    </a>
-    <a class="button report" href="reportes/nombramientos.php">
-        <div class="icon">🗂️</div>
-        Reportes Nombramientos
-    </a>
-    <a class="button report" href="reportes/estructuras.php">
-        <div class="icon">🏛️</div>
-        Reportes Estructuras
-    </a>
-</div>
-
-<h2 class="section-title">Nombramientos - Pre-Basica / Basica</h2>
-<div class="menu-container">
-    <a class="button format" href="formatos/basica_nombramiento/listar.php">
-        <div class="icon">📄</div>
-        Nombramiento
-    </a>
-    <a class="button format" href="formatos/basica_traslado/listar.php">
-        <div class="icon">🚛</div>
-        Traslado Docente
-    </a>
-</div>
-
-<h2 class="section-title">Nombramientos - Media</h2>
-<div class="menu-container">
-    <a class="button format" href="formatos/media_nombramiento/listar.php">
-        <div class="icon">📄</div>
-        Nombramiento
-    </a>
-    <a class="button format" href="formatos/media_traslado/listar.php">
-        <div class="icon">🚛</div>
-        Traslado Docente
-    </a>
-</div>
-
-<h2 class="section-title">Cancelaciones - PreBasica/básica/media</h2>
-<div class="menu-container">
-    <a class="button format" href="formatos/formato_cancelaciones/listar.php">
-        <div class="icon">🧾</div>
-        General
-    </a>
-</div>
-
-<h2 class="section-title">Licencias - PreBasica/básica/media</h2>
-<div class="menu-container">
-    <a class="button format" href="#">
-        <div class="icon">🧾</div>
-        (En construcción)
-    </a>
-</div>
-
-<footer>
-    &copy; Jose Enrique Pineda Rivera
-</footer>
-
 <?php include "includes/footer.php"; ?>

@@ -67,6 +67,17 @@ if ($method === 'POST' && $action === 'logout') {
     respond(['ok' => true]);
 }
 
+if ($method === 'GET' && $action === 'session') {
+    if (empty($_SESSION['usuario'])) {
+        respond(['ok' => false, 'message' => 'Sesión no autorizada'], 401);
+    }
+    respond(['ok' => true, 'user' => [
+        'usuario' => $_SESSION['usuario'],
+        'nombre' => $_SESSION['nombre_completo'] ?? $_SESSION['usuario'],
+        'rol' => $_SESSION['rol'] ?? 'usuario'
+    ]]);
+}
+
 requireAuth();
 
 if ($method !== 'GET') {
@@ -75,15 +86,15 @@ if ($method !== 'GET') {
 
 $resource = $_GET['resource'] ?? 'dashboard';
 $queries = [
-    'docentes' => 'SELECT id_docente AS id, nombre_docente AS nombre, identidad, estructura FROM docentes ORDER BY nombre_docente',
-    'estructuras' => 'SELECT e.id_estructura AS id, e.codigo, e.descripcion, d.nombre_docente AS docente FROM estructuras e LEFT JOIN docentes d ON d.id_docente = e.id_docente ORDER BY e.codigo',
+    'docentes' => 'SELECT id_docente AS id, nombre_docente AS nombre, identidad FROM docentes ORDER BY nombre_docente',
+    'estructuras' => 'SELECT e.id_estructura AS id, e.codigo, e.nivel, e.tipo_plaza, e.asignada, d.nombre_docente AS docente FROM estructuras e LEFT JOIN docentes d ON d.id_docente = e.id_docente ORDER BY e.codigo',
     'nombramientos' => 'SELECT id_nombramiento AS id, nombre_nombramiento AS nombre FROM nombramientos ORDER BY nombre_nombramiento',
     'usuarios' => 'SELECT id_usuario AS id, usuario, nombre_completo AS nombre, CASE WHEN rol = "admin" THEN "Administrador" ELSE "Usuario" END AS rol FROM usuarios ORDER BY usuario',
     'nombramiento-basica' => 'SELECT id, nombre_docente AS nombre, identidad, nivel_educativo, fecha_inicio, numero_horas FROM formato_nombramiento_basica ORDER BY id DESC',
     'nombramiento-media' => 'SELECT id, nombre_docente AS nombre, identidad, tipo_nombramiento, fecha_inicio, numero_horas FROM formato_nombramiento_media ORDER BY id DESC',
     'traslado-basica' => 'SELECT id, nombre_docente AS nombre, identidad, nivel_educativo, fecha_inicio FROM formato_traslado_basica ORDER BY id DESC',
     'traslado-media' => 'SELECT id, nombre_docente AS nombre, identidad, tipo_nombramiento, fecha_inicio FROM formato_traslado_media ORDER BY id DESC',
-    'cancelaciones' => 'SELECT id, nombre_docente AS nombre, identidad, fecha FROM formato_cancelacion ORDER BY id DESC'
+    'cancelaciones' => 'SELECT id, nombre_propuesto AS nombre, no_identidad AS identidad, tipo_accion, nombre_centro_educativo AS centro_educativo, nivel_educativo, fecha FROM formato_cancelacion ORDER BY id DESC'
 ];
 
 if ($resource === 'dashboard') {
@@ -100,6 +111,9 @@ if (!isset($queries[$resource])) {
 }
 
 $result = $conn->query($queries[$resource]);
+if ($result === false) {
+    respond(['ok' => false, 'message' => 'No se pudo consultar este módulo. Verifique la estructura de la base de datos.'], 500);
+}
 $rows = [];
 while ($row = $result->fetch_assoc()) {
     $rows[] = $row;
