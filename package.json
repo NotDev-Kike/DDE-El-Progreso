@@ -1,0 +1,11 @@
+{
+  "name": "dde-el-progreso",
+  "private": true,
+  "scripts": {
+    "install:frontend": "npm --prefix frontend install",
+    "start": "npm --prefix frontend run dev",
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "preview": "npm --prefix frontend run preview"
+  }
+}

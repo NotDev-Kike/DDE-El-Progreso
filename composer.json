@@ -1,0 +1,15 @@
+{
+    "name": "dde-el-progreso/gestion-educativa",
+    "description": "Sistema de gestión de la Dirección Distrital de Educación de El Progreso",
+    "type": "project",
+    "require": {
+        "php": ">=8.5 <8.6",
+        "ext-mysqli": "*",
+        "ext-mbstring": "*",
+        "ext-json": "*"
+    },
+    "config": {
+        "sort-packages": true,
+        "platform-check": true
+    }
+}
